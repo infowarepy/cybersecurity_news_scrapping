@@ -1,0 +1,2 @@
+secret_key='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' # original
+# secret_key='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'

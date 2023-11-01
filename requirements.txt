@@ -1,0 +1,5 @@
+google
+bs4
+requests
+pandas
+openai
