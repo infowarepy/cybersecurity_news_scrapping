@@ -57,3 +57,45 @@ def extract_source(url):
     parsed_url = urlparse(url)
     source = parsed_url.netloc 
     return source
+
+def filter_final_news_links(links):
+    lst = ['cybersecurity','cybersecurity-act','act','cyber','policy','information','strategies','attacks','threats','security']
+    keyword_list = [i for i in lst if str(i) != 'nan']
+    url = []
+    list = []
+    lnk = []
+    for link in links:
+        str1 = link.split("/")
+        if str1[-1]=='':
+            s = str1[-2].split('-')
+            check = any(item in s for item in keyword_list)
+            if check is True:
+                lnk.append(link)
+        else:
+            s = str1[-1].split('-')
+            check = any(item in s for item in keyword_list)
+            if check is True:
+                lnk.append(link)
+
+    return lnk
+
+def filter3(link_list): 
+    l = ['linkedin','facebook','twitter','youtube','instagram','wiki','contact','yahoo','whatsapp','login','signin','unodc','cyberwiser.eu']
+    q = [link for link in link_list if any(ext in link for ext in l)]
+    links = [i for i in link_list if i not in q]
+    return links
+
+def filter_sublinks(sublink_list,main_extension):
+    df = pd.read_excel("Regulator.xlsx", sheet_name='keywords')
+    keyword_list = [i for i in df['Url_keywords'].tolist() if str(i) != 'nan']
+    filter2_sublinks = []
+    for keyword in keyword_list:
+        y = keyword.translate(str.maketrans('', '', string.punctuation))
+        for each_sublink in sublink_list:
+            if main_extension in each_sublink:
+                 filter2_sublinks.append(each_sublink)            
+            x = each_sublink.translate(str.maketrans('', '', string.punctuation))
+            if y.lower() in x.lower():
+                filter2_sublinks.append(each_sublink)
+    filter2_sublinks = list(set(filter2_sublinks))
+    return filter2_sublinks

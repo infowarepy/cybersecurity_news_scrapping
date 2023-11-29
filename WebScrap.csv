@@ -1,5 +1,5 @@
 Country,Keywords_1,Keywords_2,Keywords_3,Keywords_4
-Australia,.gov.au,.gov,
+Australia,.gov.au,.gov,,
 Austria,.gv.at,.gov,.org,
 Belgium,.be,.gov,,
 Canada,.gc.ca,.gov,,
@@ -46,6 +46,7 @@ South Africa,.za,.gov,.org,
 Turkey,.tr,.gov,.org,
 United States of America,.us,.gov,.org,
 European Union,.eu,.gov,.org,
-Singapore,.gov.sg,.gov,.org
+Singapore,.gov.sg,.gov,.org,
 Hong Kong,.gov,.hk,.com,
 Philippines,.ph,.gov,.org,
+Bulgaria,.bg,.gov,.org,.eu
