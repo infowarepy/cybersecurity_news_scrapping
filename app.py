@@ -8,24 +8,6 @@ from urllib.parse import urlparse
 from datetime import datetime,timedelta
 API_KEY='01a425686ae74b939601e6adf09e9b7b'
 
-def get_date(days):
-    today_date = datetime.now()
-    new_days_ago = today_date - timedelta(days)
-    new_days_ago_format = new_days_ago.strftime('%Y-%m-%d')
-    return new_days_ago_format
-
-def reduce_json(json_data, max_results):
-    # Check if 'articles' key is present
-    if json_data['totalResults'] == max_results:
-        return json_data
-    
-    if 'articles' in json_data and json_data['totalResults'] > max_results:
-        json_data['articles'] = json_data['articles'][:max_results]
-        json_data['totalResults'] = max_results
-    else:
-        reduce_json(json_data, max_results-1)
-    
-    return json_data
 
 def extract_newsapi_links(country_name):
     api_links=[]
@@ -96,9 +78,9 @@ def get_news_links(country_name):
     newsapi_links=extract_newsapi_links(country_name)
     google_links=extract_google_links(country_name)
     links=newsapi_links+google_links
-    filter1_links=filter1(links,country_name)
-    filter3_links=filter3(filter1_links[0])
-    final_news_links=filter_final_news_links(filter3_links)
+    # filter1_links=filter1(links,country_name)
+    # filter3_links=filter3(filter1_links[0])
+    final_news_links=filter_final_news_links(links)
     return final_news_links
 
 def get_json(final_news_links,country_name):
@@ -134,5 +116,6 @@ def log_data(cnt):
         except Exception as e:
             print(f'error in {country}',e)
 
-cnt = pd.read_csv('country.csv')
-log_data(cnt)
+if __name__ == '__main__':        
+    cnt = pd.read_csv('country.csv')
+    log_data(cnt)

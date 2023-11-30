@@ -1,5 +1,8 @@
 from config import secret_key
 import openai
+import datetime
+from datetime import datetime,timedelta
+import string
 import pandas as pd
 from urllib.parse import urlparse
 
@@ -22,6 +25,25 @@ No, if not'''},
         {'role':'user','content':f'URL={links}'}
     ]}
 
+def get_date(days):
+    today_date = datetime.now()
+    new_days_ago = today_date - timedelta(days)
+    new_days_ago_format = new_days_ago.strftime('%Y-%m-%d')
+    return new_days_ago_format
+
+def reduce_json(json_data, max_results):
+    # Check if 'articles' key is present
+    if json_data['totalResults'] == max_results:
+        return json_data
+    
+    if 'articles' in json_data and json_data['totalResults'] > max_results:
+        json_data['articles'] = json_data['articles'][:max_results]
+        json_data['totalResults'] = max_results
+    else:
+        reduce_json(json_data, max_results-1)
+    
+    return json_data
+
 def filter1(links,country_name):
     filter1_links = list() 
     https_links = [link for link in links if 'https://' in link.lower()] 
@@ -30,6 +52,7 @@ def filter1(links,country_name):
     com_ex = ['.gov','.org','.eu','itu']
     c_ex = [i for i in authentic_site_extension if i not in com_ex]
     print('length >>>' ,len(c_ex))
+    print('c_ex>>>>>',c_ex)
     if len(c_ex)<=0:
         c_ex = authentic_site_extension
         first_stage_filter = [link for i in authentic_site_extension for link in https_links if i.lower() in link.lower()]
