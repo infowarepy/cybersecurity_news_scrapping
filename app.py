@@ -6,6 +6,7 @@ import csv
 from utils import *
 from urllib.parse import urlparse
 from datetime import datetime,timedelta
+import json
 API_KEY='01a425686ae74b939601e6adf09e9b7b'
 
 
@@ -19,7 +20,7 @@ def extract_newsapi_links(country_name):
 
     for i,article in enumerate(articles_data['articles']):
         api_links.append(article['url'])    
-    
+    print('newsapi links done')
     return api_links
 
 def extract_google_links(country_name):
@@ -74,14 +75,35 @@ def extract_google_links(country_name):
 
     return news_links
 
+def extract_regulator_based_links(country_name):
+    file=open('static/country_codes.json','r')
+    country_code=json.load(file)
+
+    regulator=pd.read_excel('REGULATORS (3).xlsx')
+    filtered_data = regulator[regulator['COUNTRY_CODE'] == country_code['India']]
+    links=[]
+    for regulator_name in filtered_data['REGULATOR_NAME']:
+        url = filtered_data.loc[filtered_data['REGULATOR_NAME'] == regulator_name, 'REGULATOR_WEB_URL'].values
+        if len(url) > 0 and str(url[0])!='nan':
+            links.append(url[0])
+        
+    
+    return links
+        
+
 def get_news_links(country_name):
     newsapi_links=extract_newsapi_links(country_name)
     google_links=extract_google_links(country_name)
-    links=newsapi_links+google_links
+    regulator_based_links=extract_regulator_based_links(country_name)
+    links=newsapi_links+google_links+regulator_based_links
     # filter1_links=filter1(links,country_name)
     # filter3_links=filter3(filter1_links[0])
     final_news_links=filter_final_news_links(links)
+    sublinks=extract_news_sublinks(final_news_links)
+    final_news_links=final_news_links+sublinks
     return final_news_links
+
+
 
 def get_json(final_news_links,country_name):
     json_data={
@@ -98,9 +120,11 @@ def get_json(final_news_links,country_name):
     
     return json_data
 
+
+ 
 def log_data(cnt):
     new_log_filename=f'[{get_date(0)}] news_links.csv'
-    with open(f"{new_log_filename}", "a",newline='') as f:
+    with open(f"{new_log_filename}", "w",newline='') as f:
         writer = csv.writer(f)
         writer.writerow(['Country','JSON'])
     for country in cnt["Country_Name"]:
@@ -119,3 +143,4 @@ def log_data(cnt):
 if __name__ == '__main__':        
     cnt = pd.read_csv('country.csv')
     log_data(cnt)
+    

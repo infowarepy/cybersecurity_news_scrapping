@@ -5,6 +5,13 @@ from datetime import datetime,timedelta
 import string
 import pandas as pd
 from urllib.parse import urlparse
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
+import time
 
 def link_verification(links):
     openAI_url="https://api.openai.com/v1/chat/completions"
@@ -122,3 +129,118 @@ def filter_sublinks(sublink_list,main_extension):
                 filter2_sublinks.append(each_sublink)
     filter2_sublinks = list(set(filter2_sublinks))
     return filter2_sublinks
+
+def take_url_keyword():
+    data_key = pd.read_excel('Regulator.xlsx',sheet_name='keywords')
+    url_keyword = []
+    for i in data_key['news_url_keywords']:
+        if str(i) == 'nan':
+            pass
+        else:
+            url_keyword.append(i)
+            
+def extract_news_sublinks(links): #,c_ex):
+    news_links = []
+    #------------------extract sublinks---------------------------------
+    for link in links:
+        print("URL for news ------------------>>>>>>> ",link)
+
+        options = webdriver.ChromeOptions()
+        options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36")
+        # driver = webdriver.Chrome(chrome_options=options,service=ChromeService(ChromeDriverManager(version="114.0.5735.90").install()))
+        driver = webdriver.Chrome(service= Service(ChromeDriverManager().install()))
+        driver.maximize_window()
+        driver.get(link)
+        driver.set_page_load_timeout(60)
+        time.sleep(1)
+        current_link = driver.current_url
+
+        list_=[] 
+        lnk=driver.find_elements(By.XPATH, "//a[@href]")
+        try:
+            for i in lnk:
+                list_.append(str(i.get_attribute('href'))) 
+        except:
+            pass
+        final_list = [link]+list_
+        sublink_list = list(set(final_list))
+        driver.quit()
+
+        # print("raw_sublink >>> ",sublink_list)
+        print("sublink list :",len(sublink_list))
+        filter1_links,c_ex=filter1(sublink_list,'Italy')
+        Filter_Sublinks = filter_sublinks(filter1_links,c_ex[0])
+        u_filter_sublinks = filter3(sublink_list)
+        https_filtersublinks = [sublink for sublink in u_filter_sublinks if 'https://' in sublink.lower()]
+
+        print("sublinks after filter >>>>>>>>>>>>>>> ",https_filtersublinks)
+        print("len of filter sublink :",len(https_filtersublinks))
+
+        url_keyword=take_url_keyword()
+        for lnk in https_filtersublinks:
+            check_data = any(item in lnk for item in url_keyword)
+            if check_data == True:
+                news_links.append(lnk)
+    
+    nws_lnk = []
+    for i in news_links:
+        if i not in nws_lnk:
+            if '#' in i:
+                pass
+            else:
+                nws_lnk.append(i) 
+    nws_lnk_1 = filter_final_news_links(nws_lnk)
+    print("len>>>>>>>>",len(nws_lnk_1))
+    return nws_lnk_1
+    #-------------------for news inner sub links------------------------------
+#     for l in nws_lnk_1:
+#         print("URL for news ------------------>>>>>>> ",l)
+        
+#         options = webdriver.ChromeOptions()
+#         options.add_argument("--headless")
+#         options.add_argument('--ignore-certificate-errors')
+#         options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36")
+#         driver = webdriver.Chrome(options=options,service= Service(ChromeDriverManager().install()))
+#         driver.minimize_window()
+#         driver.get(l)
+#         driver.set_page_load_timeout(60)
+#         time.sleep(2)
+#         current_link = driver.current_url       
+        
+#         list_=[] 
+#         lnk=driver.find_elements(By.XPATH, "//a[@href]")
+#         try:
+#             for i in lnk:
+#                 list_.append(str(i.get_attribute('href'))) 
+#         except:
+#             pass
+#         final_list = [l]+list_
+#         sublink_list = list(set(final_list))
+#         driver.quit()
+
+#         # print("raw_sublink >>> ",sublink_list)
+#         print("sublink list :",len(sublink_list))
+#         filter1_links,c_ex=filter1(sublink_list,'Italy')
+#         Filter_Sublinks = filter_sublinks(filter1_links,c_ex[0])
+#         u_filter_sublinks = filter3(Filter_Sublinks)
+#         https_filtersublinks = [sublink for sublink in u_filter_sublinks if 'https://' in sublink.lower()]
+
+#         print("sublinks after filter >>>>>>>>>>>>>>> ",https_filtersublinks)
+#         print("len of filter sublink :",len(https_filtersublinks))
+        
+#         for http_lnk in https_filtersublinks:
+#             check_data = any(item in http_lnk for item in url_keyword)
+#             if check_data == True:
+#                 news_links.append(http_lnk)
+        
+#     nws_l = []
+#     for i in news_links:
+#         if i not in nws_l:
+#             if '#' in i:
+#                 pass
+#             else:
+#                 nws_l.append(i)
+    
+#     filter_news_sub_link = filter_final_news_links(nws_l)
+
+#     return list(set(filter_news_sub_link))
