@@ -78,9 +78,8 @@ def extract_google_links(country_name):
 def extract_regulator_based_links(country_name):
     file=open('static/country_codes.json','r')
     country_code=json.load(file)
-
     regulator=pd.read_excel('REGULATORS (3).xlsx')
-    filtered_data = regulator[regulator['COUNTRY_CODE'] == country_code['India']]
+    filtered_data = regulator[regulator['COUNTRY_CODE'] == country_code[country_name]]
     links=[]
     for regulator_name in filtered_data['REGULATOR_NAME']:
         url = filtered_data.loc[filtered_data['REGULATOR_NAME'] == regulator_name, 'REGULATOR_WEB_URL'].values
@@ -94,13 +93,14 @@ def extract_regulator_based_links(country_name):
 def get_news_links(country_name):
     newsapi_links=extract_newsapi_links(country_name)
     google_links=extract_google_links(country_name)
-    regulator_based_links=extract_regulator_based_links(country_name)
+    # regulator_based_links=extract_regulator_based_links(country_name)
+    regulator_based_links=[]
     links=newsapi_links+google_links+regulator_based_links
     # filter1_links=filter1(links,country_name)
     # filter3_links=filter3(filter1_links[0])
     final_news_links=filter_final_news_links(links)
-    sublinks=extract_news_sublinks(final_news_links)
-    final_news_links=final_news_links+sublinks
+    # sublinks=extract_news_sublinks(final_news_links)
+    # final_news_links=final_news_links+sublinks
     return final_news_links
 
 
@@ -126,8 +126,9 @@ def log_data(cnt):
     new_log_filename=f'[{get_date(0)}] news_links.csv'
     with open(f"{new_log_filename}", "w",newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['Country','JSON'])
+        writer.writerow(['Country','JSON','RAW_LINKS','SUBLINKS'])
     for country in cnt["Country_Name"]:
+        time.sleep(60)
         print(country)
         try:
             news_links=get_news_links(country)
